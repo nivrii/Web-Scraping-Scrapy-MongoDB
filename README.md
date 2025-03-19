@@ -1,0 +1,154 @@
+# Preparing the scraper scaffolding 
+
+1. **Extracting** data from the website using Scrapy spider as my webcrawler
+2. **Transforming** this data (cleaning or validating it, using an item pipeline)
+3. **Loading** the transformed data into a storage system (mongoDB) with an item pipeline.
+
+## Creating a virtual environment
+
+1. *Create it*
+  py -m venv venv\ - This command allows the python launcher for windows to select an appropriate version of Python to execute
+
+2. *Activate it*
+  venv\Scripts\activate - This command activates the virtual environment
+
+3. *Deactivate it*
+  deactivate - This command deactivates the virtual environment
+
+## Installing Scrapy
+
+1. *Using Bash*
+  pip install scrapy
+
+## Create a Scrapy project
+
+scrapy startproject books - I'll be scraping a website called Books To scrape
+
+  *books/* is the root directory of my Scrapy project.
+  *books/spiders/* is a directory to store my spider definitions.
+  *books/items.py* is a file to define the data structure of my scraped items.
+  *books/middlewares.py* is a file to manage my custom middlewares.
+  *books/pipelines.py* is a file to define item processing pipelines.
+  *books/settings.py* is the settings file to configure my project.
+
+## Inspecting the website to scrape
+
+The first step in web scraping is inspecting the actual website we intend to scrape, by opening up our browser, navigating to the site, and clicking around.
+We can use the browser's developer tools to inspect the HTML structure of the page.
+
+We can also use the browser's network tab to inspect the HTTP requests and responses.
+We can also use the browser's console to inspect the JavaScript code that runs on the page.
+We can also use the browser's elements tab to inspect the HTML elements on the page.
+We can also use the browser's resources tab to inspect the resources loaded by the page.
+We can also use the browser's performance tab to inspect the performance of the page.
+We can also use the browser's security tab to inspect the security of the page.
+We can also use the browser's console to inspect the JavaScript code that runs on the page.
+
+Inspecting the website will help us identify the following:
+
+* The structure of the website
+* The data we want to scrape
+* The data we don't want to scrape
+* The best way to scrape the data
+* The best way to avoid getting blocked
+* The best way to avoid getting banned
+* The best way to avoid getting sued
+
+## Getting started
+
+I've identified a book item, and how the information is organized on the site. The three data points that I want to extract are:
+
+* [Title]
+* [Price]
+* [URL]
+
+1. All the three items can be found inside the <article></article> element, which has the class "product_prod".
+2. I target all the parent elements (article) of each book. They contain all the information that I want. I will loop over all of them, extracting the relevant information.
+
+## Preview the data with scrapy shell
+
+Before writing a full fledged spider, it is always best to preview and test how I'll extract data from the webpage.
+The scrapy shell is an interactive tool that lets one inspect and extract data from a webpage in real time.
+
+To do this, I open the shell and point it to the site I want to scrape by using the shell command followed by the site's URL.
+  scrapy shell "http://books.toscrape.com"
+This command loads the specified url, giving me an interactive environment to explore the page's HTML structure
+
+## Running the command
+
+
+After I run this command, I see some logs followed by usage instructions. The shell provides several pre-imported objects with one being:
+
+1. Response - Has several useful attributes and methods that allow one to inspect the page similarly to how I inspected it using the browser's developer tools.
+
+* [.url] contains the URL of the page.
+* [.status] shows you the HTTP status code of the response.
+* [.headers] displays all the HTTP headers of the response.
+* [.body] contains the raw bytes of the response.
+
+If I'd like to check the HTTP status code, I can run the following command.
+
+* >>> response.status
+
+If I'd like to view the HTML content of the page I use .text
+
+* >>> response.text
+
+First,  drill down in the HTML  to the <article> elements that contain all the information for one book, then I select
+ach book title using only the relevant part of the long CSS selector thatI've found though copying:
+
+* >>> all_book_elements = response.css("article.product_pod")
+      for book in all_book_elements:
+        print(book.css("h3 > a::attr(title)").get())
+
+Here, I start by targeting all book container elements saving the result to all_book_elements
+Calls to .css() return other selector objects, hence I can continue drilling down further using another call to .css()
+
+I can also get the price of each book using this command:
+
+* >>> all_book_elements = response.css("article.product_pod")
+      for book in all_book_elements:
+        print(book.css("p.price_color::text").get())  
+
+Or the url associated with each <a> element inside the <h3> element  
+
+* >>> all_book_elements = response.css("article.product_pod")
+      for book in all_book_elements:
+        print(book.css("h3 > a::attr(href)").get())
+
+## Building my web scraper using scrapy
+
+Here, I do the following:
+
+* Create item classes to structure my data
+* Apply selectors to pinpoint elements I want to extract
+* Handling pagination to traverse multi-page datasets
+
+## Collect the data in an Item
+
+Here, I create an item class to structure my data in the file [items.py]. This is a class that inherits from [scrapy.Item] and I define the fields I want to scrape as instances of [scrapy.Field].
+
+Eg name = scrapy.Field()
+Here, the [BooksItem] inherits from [Item] and I define [.name] as a field. The Field class being a placeholder that's just an alias to a Python [dict]
+
+
+Now that I have defined the class [BooksItem], I can now use it in my spider to collect data. I make use of  the selectors using the shell to help the spider find the fields eg, [.name] I need from the target website.
+
+## Write a Scrapy spider
+First I'll need to navigate to the books/ folder. I then need to run the following command to generate my first spider.
+
+>>> scrapy genspider book https://books.toscrape.com/
+
+By passing a spider name and target url to genspider, Scrapy creates a new file in the spider/ directory of my project.
+
+Any spider has a name and needs to provide two more pieces of information
+
+1. Where to start scraping - [`start_urls`] This is a list of strings that contains only one url in this case but it can contain more.It has already been populated by genspider with  ["https://bookstoscrape.com/"]
+2. How to parse the response - [`.parse()`] This is a callback method that Scrapy calls with the downloaded [response] object for each url which contains the logic to extract the relevant information from the response. It finally uses [yield] to generate each item.
+
+I set up [.parse] first for it to find all the books on the current page, iterates over each book, creating a BooksItem instance, extracting a url, title and price using css selectors and assigns these  values to the relevant fields of the BooksItem and then yields the item instance to the item pipeline.
+
+## Extract data from a website
+
+To see whether I'm still on the Scrapy project directory and see the extracted data, I run the command:
+>>> scrapy crawl book
