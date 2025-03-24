@@ -17,8 +17,7 @@ NEWSPIDER_MODULE = "books.spiders"
 MONGO_URI = "mongodb://localhost:27017"
 MONGO_DATABASE = "books_db"
 
-LOG_LEVEL = "INFO"  
-LOG_FILE= "book_scraper.log"
+LOG_LEVEL = "INFO"
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = "books (+http://www.yourdomain.com)"
 

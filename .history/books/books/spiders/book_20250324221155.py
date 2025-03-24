@@ -13,15 +13,9 @@ class BookSpider(scrapy.Spider):
             )
 
     def parse(self, response):
-        """
-        @url https://books.toscrape.com
-        @returns items 20 20
-        @returns request 1 50
-        @scrapes url title price
-        """
         for book in response.css("article.product_pod"):
             item = BooksItem()
-            item["url"] = book.css("h3 a::attr(href)").get()    
+            item["url"] = book.css("h3 a::attr(href)").get()
             item["title"] = book.css("h3 a::attr(title)").get()
             item["price"] = book.css("p.price_color::text").get()
             yield item   
